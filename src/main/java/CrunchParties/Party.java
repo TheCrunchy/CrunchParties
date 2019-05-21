@@ -41,7 +41,7 @@ public class Party {
 	@Setting("promoted")
 	private List<UUID> promoted = new ArrayList<>();
 
-	public void setpromoted(List<UUID> promoted) {
+	public void setPromoted(List<UUID> promoted) {
 		this.promoted = promoted;
 	}
 
@@ -51,10 +51,22 @@ public class Party {
 
 	public void addMember(UUID uuid) {
 		members.add(uuid);
+		for (UUID keyword : members){	
+			if (Sponge.getServer().getPlayer(keyword).isPresent()) {		
+				Sponge.getServer().getPlayer(keyword).get().sendMessage(Text.of(TextColors.AQUA, PartiesMain.getUser(uuid).get().getName(), " has joined the party."));
+			}
+		}
+		PartiesMain.saveParty(this);
 	}
 
 	public void removeMember(UUID uuid) {
 		members.remove(uuid);
+		for (UUID keyword : members){
+			if (Sponge.getServer().getPlayer(keyword).isPresent()) {
+				Sponge.getServer().getPlayer(keyword).get().sendMessage(Text.of(TextColors.RED, PartiesMain.getUser(uuid).get().getName(), " has left the party or was kicked."));
+			}
+		}
+		PartiesMain.saveParty(this);
 	}
 
 	public void addPromoted(UUID uuid) {
