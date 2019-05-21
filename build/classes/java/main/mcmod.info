@@ -1,0 +1,14 @@
+[
+    {
+        "modid": "crunchparties",
+        "name": "Parties by Crunch",
+        "version": "1.0",
+        "description": "Simple party system with party chat",
+        "dependencies": [
+            "spongeapi@7.1.0-SNAPSHOT"
+        ],
+        "requiredMods": [
+            "spongeapi@7.1.0-SNAPSHOT"
+        ]
+    }
+]
