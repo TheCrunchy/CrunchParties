@@ -56,6 +56,11 @@ public class UserCommands {
 					}
 					onlineString = onlineString.replaceFirst(",", "");
 					player.sendMessage(Text.of(TextColors.YELLOW, "Online : ", TextColors.WHITE, onlineString));
+					
+					
+					
+					player.sendMessage(Text.of(TextColors.YELLOW, "---------------- ",
+							PartiesMain.getUser(party.getLeader()).get().getName(), " party ----------------"));
 				} else {
 					src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
 				}
@@ -176,9 +181,9 @@ public class UserCommands {
 								". This invite will expire in 5 minutes."));
 						Text.Builder sendInviteButton = Text.builder();
 						sendInviteButton.append(Text.of(TextColors.AQUA, TextStyles.UNDERLINE, " [Accept Invite]"))
-								.onClick(TextActions.runCommand(
-										"/party join " + PartiesMain.getUser(party.getLeader()).get().getName()))
-								.onHover(TextActions.showText(Text.of("Click me to accept this invite"))).build();
+						.onClick(TextActions.runCommand(
+								"/party join " + PartiesMain.getUser(party.getLeader()).get().getName()))
+						.onHover(TextActions.showText(Text.of("Click me to accept this invite"))).build();
 						invitedPlayer.sendMessage(Text.of(sendInviteButton));
 					} else {
 						src.sendMessage(Text.of(TextColors.RED, "You do not have the rank to invite that user."));
@@ -215,9 +220,108 @@ public class UserCommands {
 					PartiesMain.allParties.put(party.getLeader(), party);
 					//PartiesMain.saveParty(party);
 				}
+				else {
+					src.sendMessage(Text.of(TextColors.RED,
+							"You have not been invited to this party."));
+				}
 			}
 			return CommandResult.success();
 
+		}
+	}
+	public static class leaveParty implements CommandExecutor {
+
+		@Override
+		public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+			if (src instanceof Player) {
+				Player player = (Player) src;
+				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(player.getUniqueId());
+				if (partyPlayer.inParty) {
+					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
+					if (party.getLeader().equals(player.getUniqueId())){
+						src.sendMessage(Text.of(TextColors.RED,
+								"You must transfer leadership in order to leave the party. Alternatively disband the party."));
+						return CommandResult.success();
+					}
+					src.sendMessage(Text.of(TextColors.RED, "You have left the party."));
+					partyPlayer.setPartyStatus(false);
+					partyPlayer.setPartyUUID(null);
+					party.removeMember(player.getUniqueId());
+					return CommandResult.success();
+				}
+			}
+			return CommandResult.success();
+
+		}
+	}
+	public static class changeLeadership implements CommandExecutor {
+
+		@Override
+		public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+			if (src instanceof Player) {
+				Player player = (Player) src;
+				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(player.getUniqueId());
+				Player newLeader = (Player) args.getOne("Player").get();
+				PartyPlayer newPartyPlayer = PartiesMain.allPartyPlayers.get(newLeader.getUniqueId());
+				if (!newPartyPlayer.inParty) {
+
+					src.sendMessage(Text.of(TextColors.RED, "That player is not in a party."));
+					return CommandResult.success();
+				}
+				if (partyPlayer.inParty) {
+					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
+					if (party.getLeader().equals(player.getUniqueId())) {
+						if (!newPartyPlayer.getPartyUUID().equals(party.getLeader())) {
+							src.sendMessage(Text.of(TextColors.RED, "That player is not in your party."));
+							return CommandResult.success();
+						}
+						src.sendMessage(Text.of(TextColors.AQUA, "Leadership transferred to ", newLeader.getName()));
+						party.changeLeader(newLeader.getUniqueId());
+						newLeader.sendMessage(Text.of(TextColors.AQUA, "You are now the party leader."));
+					} else {
+						src.sendMessage(Text.of(TextColors.RED, "You do not have the rank to change leadership."));
+					}
+				} else {
+					src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
+				}
+
+			}
+			// TODO Auto-generated method stub
+			return CommandResult.success();
+		}
+	}
+	public static class promoteUser implements CommandExecutor {
+
+		@Override
+		public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+			if (src instanceof Player) {
+				Player player = (Player) src;
+				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(player.getUniqueId());
+				Player promotedPlayer = (Player) args.getOne("Player").get();
+				PartyPlayer promotedPartyPlayer = PartiesMain.allPartyPlayers.get(promotedPlayer.getUniqueId());
+				if (promotedPartyPlayer.inParty) {
+					src.sendMessage(Text.of(TextColors.RED, "That player is already in a party."));
+					return CommandResult.success();
+				}
+				if (partyPlayer.inParty) {
+					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
+					if (promotedPartyPlayer.getPartyUUID().equals(partyPlayer.getPartyUUID())){
+						if (party.getLeader().equals(player.getUniqueId())) {
+							src.sendMessage(Text.of(TextColors.AQUA, "Invite sent to ", promotedPlayer.getName()));
+							party.addPromoted(promotedPlayer.getUniqueId());
+						} else {
+							src.sendMessage(Text.of(TextColors.RED, "You must be the leader to promote people."));
+						}
+					}else {
+						src.sendMessage(Text.of(TextColors.RED, "They are not a member of your party."));
+					}
+					}else {
+						src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
+
+				}
+			}
+			// TODO Auto-generated method stub
+			return CommandResult.success();
 		}
 	}
 }

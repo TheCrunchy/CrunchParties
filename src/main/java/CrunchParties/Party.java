@@ -25,8 +25,23 @@ public class Party {
 
 	public void setLeader(UUID leader) {
 		this.leader = leader;
+		PartiesMain.saveParty(this);
 	}
+	public void changeLeader(UUID leader) {
+		PartiesMain.deleteParty(this);
+		PartiesMain.allParties.remove(this.getLeader());
+		this.leader = leader;
+		for (UUID keyword : members){	
+			if (Sponge.getServer().getPlayer(keyword).isPresent()) {		
+				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(keyword);
+				partyPlayer.setPartyUUID(leader);
+				Sponge.getServer().getPlayer(keyword).get().sendMessage(Text.of(TextColors.AQUA, PartiesMain.getUser(leader).get().getName(), " Is now the party leader."));
+			}
+		}
+		PartiesMain.saveParty(this);
 
+		PartiesMain.allParties.put(this.getLeader(), this);
+	}
 	@Setting("members")
 	private List<UUID> members = new ArrayList<>();
 
@@ -71,10 +86,12 @@ public class Party {
 
 	public void addPromoted(UUID uuid) {
 		promoted.add(uuid);
+		PartiesMain.saveParty(this);
 	}
 
 	public void removePromoted(UUID uuid) {
 		promoted.remove(uuid);
+		PartiesMain.saveParty(this);
 	}
 
 	public boolean hasRank(UUID uuid) {
@@ -99,9 +116,11 @@ public class Party {
 		for (UUID keyword : members){
 			
 			for (Entry<UUID, PartyPlayer> partyPlayer : PartiesMain.allPartyPlayers.entrySet()) {
+				if (partyPlayer.getValue().getPartyUUID().equals(this.getLeader())) {
 				partyPlayer.getValue().setPartyUUID(null);
 				partyPlayer.getValue().setPartyStatus(false);
 				partyPlayer.getValue().setChatStatus(false);
+			}
 			}
 			if (Sponge.getServer().getPlayer(keyword).isPresent()) {
 				Sponge.getServer().getPlayer(keyword).get().sendMessage(Text.of(TextColors.RED, "The party has been disbanded."));

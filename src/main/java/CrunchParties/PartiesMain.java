@@ -91,6 +91,7 @@ public class PartiesMain {
 			}
 
 		}
+		System.out.println(allParties.keySet());
 	}
 
 	// get the user from uuid to get username and check if online
@@ -126,17 +127,17 @@ public class PartiesMain {
 
 		@Listener
 		public void onLogin(ClientConnectionEvent.Join event, @First Player player) {
-			Party party = new Party();
 			PartyPlayer partyPlayer = new PartyPlayer();
 			partyPlayer.setPlayerUUID(player.getUniqueId());
+			System.out.println(allParties.keySet());
 			for (Entry<UUID, Party> party2 : allParties.entrySet()) {
+				System.out.println(allParties.entrySet());
 				if (party2.getValue().getMembers().contains(player.getUniqueId())) {
 					partyPlayer.setPartyStatus(true);
-
 					partyPlayer.setPartyUUID(party2.getValue().getLeader());
+					break;
 				} else {
 					partyPlayer.setPartyStatus(false);
-
 				}
 			}
 			allPartyPlayers.put(player.getUniqueId(), partyPlayer);
@@ -177,6 +178,7 @@ public class PartiesMain {
 		File file = new File(rootS.getRoot().toFile(), party.getLeader().toString());
 		config.getParties().add(party);
 		saveConfig(config, file.toPath());
+		allParties.put(party.getLeader(), party);
 	}
 
 	// get the party file and delete it
@@ -193,6 +195,10 @@ public class PartiesMain {
 			.description(Text.of("Show party details"))
 			.executor(new UserCommands.showParty())
 			.build();
+	CommandSpec leave = CommandSpec.builder()
+			.description(Text.of("leave a party"))
+			.executor(new UserCommands.leaveParty())
+			.build();
 	CommandSpec toggleChat = CommandSpec.builder()
 			.description(Text.of("Toggle chat"))
 			.executor(new UserCommands.togglePartyChat())
@@ -207,9 +213,19 @@ public class PartiesMain {
 			.executor(new UserCommands.sendPartyMessage())
 			.build();
 	CommandSpec invite = CommandSpec.builder()
-			.description(Text.of("Send a party message without being in party chat"))
+			.description(Text.of("Invite a user to the party"))
 			.arguments(GenericArguments.player(Text.of("Player")))
 			.executor(new UserCommands.inviteUser())
+			.build();
+	CommandSpec promote = CommandSpec.builder()
+			.description(Text.of("Promote a user in the party"))
+			.arguments(GenericArguments.player(Text.of("Player")))
+			.executor(new UserCommands.promoteUser())
+			.build();
+	CommandSpec changeLeader = CommandSpec.builder()
+			.description(Text.of("Change party leadership"))
+			.arguments(GenericArguments.player(Text.of("Player")))
+			.executor(new UserCommands.changeLeadership())
 			.build();
 	CommandSpec join = CommandSpec.builder()
 			.description(Text.of("Join a party"))
@@ -226,6 +242,9 @@ public class PartiesMain {
 			.child(disbandParty, "disband")
 			.child(join, "join")
 			.child(invite, "invite")
+			.child(leave, "leave")
+			.child(changeLeader, "transfer")
+			.child(promote, "promote")
 			.build();
 
 }
