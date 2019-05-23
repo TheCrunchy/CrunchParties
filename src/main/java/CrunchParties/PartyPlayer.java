@@ -26,22 +26,13 @@ public class PartyPlayer {
     public boolean inParty;
     
     public void setPartyStatus(boolean bool) {
-    	if (bool == true) {
-    		this.inParty = true;
-    	}
-    	else {
-    		this.inParty = false;
-    	}
+    		this.inParty = bool;
     	update();
     }
     public boolean chatStatus;
     public void setChatStatus(boolean bool) {
-    	if (bool == true) {
-    		this.chatStatus = true;
-    	}
-    	else {
-    		this.chatStatus = false;
-    	}
+    		this.chatStatus = bool;
+    	
     	update();
     }
     public void update() {

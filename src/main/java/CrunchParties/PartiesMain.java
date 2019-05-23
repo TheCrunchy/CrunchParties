@@ -219,8 +219,18 @@ public class PartiesMain {
 			.build();
 	CommandSpec promote = CommandSpec.builder()
 			.description(Text.of("Promote a user in the party"))
-			.arguments(GenericArguments.player(Text.of("Player")))
+			.arguments(GenericArguments.user(Text.of("Player")))
 			.executor(new UserCommands.promoteUser())
+			.build();
+	CommandSpec demote = CommandSpec.builder()
+			.description(Text.of("Promote a user in the party"))
+			.arguments(GenericArguments.user(Text.of("Player")))
+			.executor(new UserCommands.demoteUser())
+			.build();
+	CommandSpec kick = CommandSpec.builder()
+			.description(Text.of("Kick a user form the party"))
+			.arguments(GenericArguments.user(Text.of("Player")))
+			.executor(new UserCommands.kickUser())
 			.build();
 	CommandSpec changeLeader = CommandSpec.builder()
 			.description(Text.of("Change party leadership"))
@@ -245,6 +255,8 @@ public class PartiesMain {
 			.child(leave, "leave")
 			.child(changeLeader, "transfer")
 			.child(promote, "promote")
+			.child(demote, "demote")
+			.child(kick, "kick")
 			.build();
 
 }

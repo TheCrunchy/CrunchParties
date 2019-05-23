@@ -26,6 +26,7 @@ public class chatEvent {
 				party.sendPartyMessage(newMsg, player.getName());
 			}
 		}
+		partyPlayer.setChatStatus(false);
 	}
 
 

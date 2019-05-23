@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -297,7 +298,7 @@ public class UserCommands {
 			if (src instanceof Player) {
 				Player player = (Player) src;
 				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(player.getUniqueId());
-				Player promotedPlayer = (Player) args.getOne("Player").get();
+				User promotedPlayer = (User) args.getOne("Player").get();
 				PartyPlayer promotedPartyPlayer = PartiesMain.allPartyPlayers.get(promotedPlayer.getUniqueId());
 				if (promotedPartyPlayer.inParty) {
 					src.sendMessage(Text.of(TextColors.RED, "That player is already in a party."));
@@ -307,14 +308,100 @@ public class UserCommands {
 					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
 					if (promotedPartyPlayer.getPartyUUID().equals(partyPlayer.getPartyUUID())){
 						if (party.getLeader().equals(player.getUniqueId())) {
-							src.sendMessage(Text.of(TextColors.AQUA, "Invite sent to ", promotedPlayer.getName()));
+							src.sendMessage(Text.of(TextColors.AQUA, "Promoted ", promotedPlayer.getName()));
 							party.addPromoted(promotedPlayer.getUniqueId());
+							if (promotedPlayer.isOnline()) {
+								Sponge.getServer().getPlayer(promotedPlayer.getUniqueId()).get().sendMessage(Text.of(TextColors.AQUA, "You were", TextColors.GREEN, " promoted ", TextColors.AQUA, "in the party."));
+							}
 						} else {
 							src.sendMessage(Text.of(TextColors.RED, "You must be the leader to promote people."));
 						}
 					}else {
 						src.sendMessage(Text.of(TextColors.RED, "They are not a member of your party."));
 					}
+					}else {
+						src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
+
+				}
+			}
+			// TODO Auto-generated method stub
+			return CommandResult.success();
+		}
+	}
+	public static class demoteUser implements CommandExecutor {
+
+		@Override
+		public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+			if (src instanceof Player) {
+				Player player = (Player) src;
+				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(player.getUniqueId());
+				User demotedPlayer = (User) args.getOne("Player").get();
+				PartyPlayer demotedPartyPlayer = PartiesMain.allPartyPlayers.get(demotedPlayer.getUniqueId());
+				if (demotedPartyPlayer.inParty) {
+					src.sendMessage(Text.of(TextColors.RED, "That player is already in a party."));
+					return CommandResult.success();
+				}
+				if (partyPlayer.inParty) {
+					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
+					if (demotedPartyPlayer.getPartyUUID().equals(partyPlayer.getPartyUUID())){
+						if (party.getLeader().equals(player.getUniqueId())) {
+							src.sendMessage(Text.of(TextColors.AQUA, "Demoted ", demotedPlayer.getName()));
+							if (demotedPlayer.isOnline()) {
+								Sponge.getServer().getPlayer(demotedPlayer.getUniqueId()).get().sendMessage(Text.of(TextColors.AQUA, "You were ", TextColors.RED, " demoted ", TextColors.AQUA, "in the party."));
+							}
+							party.removePromoted(demotedPlayer.getUniqueId());
+						} else {
+							src.sendMessage(Text.of(TextColors.RED, "You must be the leader to demote people."));
+						}
+					}else {
+						src.sendMessage(Text.of(TextColors.RED, "They are not a member of your party."));
+					}
+					}else {
+						src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
+
+				}
+			}
+			// TODO Auto-generated method stub
+			return CommandResult.success();
+		}
+	}
+	public static class kickUser implements CommandExecutor {
+
+		@Override
+		public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+			if (src instanceof Player) {
+				Player player = (Player) src;
+				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(player.getUniqueId());
+				User kickedPlayer = (User) args.getOne("Player").get();
+				PartyPlayer kickPartyPlayer = PartiesMain.allPartyPlayers.get(kickedPlayer.getUniqueId());
+				if (!kickPartyPlayer.inParty) {
+					src.sendMessage(Text.of(TextColors.RED, "That player is not in a party."));
+					return CommandResult.success();
+				}
+				if (partyPlayer.inParty) {
+					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
+					if (!party.getMembers().contains(kickedPlayer.getUniqueId())) {
+						src.sendMessage(Text.of(TextColors.RED, "They are not a member of your party."));
+						return CommandResult.success();
+					}
+					if (party.hasRank(player.getUniqueId())){
+						if (party.getLeader().equals(player.getUniqueId()) || party.hasRank(kickedPlayer.getUniqueId())) {
+							src.sendMessage(Text.of(TextColors.AQUA, "You cannot kick the leader or promoted people."));
+							return CommandResult.success();
+						} else {
+							party.removeMember(kickedPlayer.getUniqueId());
+							src.sendMessage(Text.of(TextColors.AQUA, "Successfully kicked ", kickedPlayer.getName()));
+							//if (kickedPlayer.isOnline()) {
+							//	Sponge.getServer().getPlayer(kickedPlayer.getUniqueId()).get().sendMessage(Text.of(TextColors.AQUA, "You were ", TextColors.RED, " kicked ", TextColors.AQUA, "from the party."));
+							//}
+							kickPartyPlayer.setPartyStatus(false);
+							kickPartyPlayer.setChatStatus(false);
+							kickPartyPlayer.setPartyUUID(null);
+						}
+					}else {
+						src.sendMessage(Text.of(TextColors.RED, "You do not have the required rank to kick people."));
+
+				}
 					}else {
 						src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
 
