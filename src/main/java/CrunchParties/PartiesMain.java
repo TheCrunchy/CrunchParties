@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -65,7 +66,7 @@ public class PartiesMain {
 	private Path privateConfigDir;
 
 	static rootSingleton rootS;
-
+	public static ArrayList <Party> sortedParties = new ArrayList<>();
 	@Listener
 	public void onServerFinishLoad(GameStartingServerEvent event) {
 		Sponge.getEventManager().registerListeners(this, new login());
@@ -75,13 +76,17 @@ public class PartiesMain {
 		rootS.setRoot(root);
 		Task removeOffline = Task.builder().execute(new clearOfflines()).delayTicks(1).interval(1, TimeUnit.MINUTES)
 				.async().name("Remove offline players from my map").submit(this);
+		Task updatePartiesOrder = Task.builder().execute(new sorterTask())
+				.delayTicks(1)
+				.interval(1, TimeUnit.MINUTES)
+				.name("Update factions order task").submit(this);
 		File folder = new File(root.toString());
 		File[] listOfFiles = folder.listFiles();
 		// create a party for every file in the folder
 		for (int i = 0; i < listOfFiles.length; i++) {
 			if (listOfFiles[i].isFile()) {
 				Sponge.getServer().getConsole()
-						.sendMessage(Text.of(TextColors.LIGHT_PURPLE, "File ", listOfFiles[i].getName()));
+				.sendMessage(Text.of(TextColors.LIGHT_PURPLE, "File ", listOfFiles[i].getName()));
 				// load the file, fill its data, get all files first
 				File file = new File(root.toFile(), listOfFiles[i].getName());
 				rootConfig = loadConfig(file.toPath());
@@ -109,7 +114,7 @@ public class PartiesMain {
 		public void run() {
 			ArrayList<UUID> offlinePlayers = new ArrayList<UUID>();
 			Sponge.getServer().getConsole()
-					.sendMessage(Text.of(TextColors.DARK_PURPLE, "Clearing offline players from party players cache"));
+			.sendMessage(Text.of(TextColors.DARK_PURPLE, "Clearing offline players from party players cache"));
 			for (Entry<UUID, PartyPlayer> partyPlayer : allPartyPlayers.entrySet()) {
 				if (!getUser(partyPlayer.getValue().getPlayerUUID()).get().isOnline()) {
 					offlinePlayers.add(partyPlayer.getValue().getPlayerUUID());
@@ -119,6 +124,29 @@ public class PartiesMain {
 				allPartyPlayers.remove(uuid);
 			}
 			offlinePlayers.clear();
+		}
+	}
+
+	//sort the parties by members
+	public ArrayList <Party> sortParties() {
+		ArrayList <Party> sortedParties = new ArrayList<Party>();
+		for (Entry<UUID, Party> party : allParties.entrySet()) {
+			sortedParties.add(party.getValue());
+			party.getValue().getMembers();
+		}
+		for (int i = 0 ; i < sortedParties.size() ; i++) {
+			for (int j = i+1; j < sortedParties.size() ; j++) {
+				if (sortedParties.get(i).getMembers().size() < sortedParties.get(j).getMembers().size()) {
+					Collections.swap(sortedParties, i, j);
+				}
+			}
+		}
+		return sortedParties;
+	}
+	//sort the parties every minute
+	public class sorterTask implements Runnable {
+		public void run() {
+			sortedParties = sortParties();
 		}
 	}
 
@@ -193,11 +221,16 @@ public class PartiesMain {
 			.build();
 	CommandSpec show = CommandSpec.builder()
 			.description(Text.of("Show party details"))
+			 .arguments(GenericArguments.optional(GenericArguments.user(Text.of("name"))))
 			.executor(new UserCommands.showParty())
 			.build();
 	CommandSpec leave = CommandSpec.builder()
 			.description(Text.of("leave a party"))
 			.executor(new UserCommands.leaveParty())
+			.build();
+	CommandSpec list = CommandSpec.builder()
+			.description(Text.of("list all parties"))
+			.executor(new UserCommands.listParties())
 			.build();
 	CommandSpec toggleChat = CommandSpec.builder()
 			.description(Text.of("Toggle chat"))
@@ -257,6 +290,7 @@ public class PartiesMain {
 			.child(promote, "promote")
 			.child(demote, "demote")
 			.child(kick, "kick")
+			.child(list, "list")
 			.build();
 
 }

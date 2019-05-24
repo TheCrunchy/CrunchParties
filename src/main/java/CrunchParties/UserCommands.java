@@ -26,6 +26,43 @@ public class UserCommands {
 			if (src instanceof Player) {
 				Player player = (Player) src;
 				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(player.getUniqueId());
+				if (args.getOne("name").isPresent()){
+		
+					User otherParty = (User) args.getOne("name").get();
+					Party party = PartiesMain.allParties.get(otherParty.getUniqueId());
+					player.sendMessage(Text.of(TextColors.YELLOW, "---------------- ",
+							PartiesMain.getUser(party.getLeader()).get().getName(), " party ----------------"));
+					player.sendMessage(Text.of(TextColors.YELLOW, "Leader : ", TextColors.WHITE,
+							PartiesMain.getUser(party.getLeader()).get().getName()));
+
+					// get names from the UUIDs, could put this in a method but cant be bothered atm
+					List<UUID> promoted = party.getPromoted();
+					String promotedString = "";
+					for (UUID uuid : promoted) {
+						promotedString += ", " + PartiesMain.getUser(uuid).get().getName();
+					}
+					promotedString = promotedString.replaceFirst(",", "");
+					List<UUID> members = party.getMembers();
+					String memberString = "";
+					for (UUID uuid : members) {
+						memberString += ", " + PartiesMain.getUser(uuid).get().getName();
+					}
+
+					memberString = memberString.replaceFirst(",", "");
+					player.sendMessage(Text.of(TextColors.YELLOW, "Trusted : ", TextColors.WHITE, promotedString));
+					player.sendMessage(Text.of(TextColors.YELLOW, "Members : ", TextColors.WHITE, memberString));
+					String onlineString = "";
+					for (UUID uuid : members) {
+						if (PartiesMain.getUser(uuid).get().isOnline()) {
+							onlineString += ", " + PartiesMain.getUser(uuid).get().getName();
+						}
+					}
+					onlineString = onlineString.replaceFirst(",", "");
+					player.sendMessage(Text.of(TextColors.YELLOW, "Online : ", TextColors.WHITE, onlineString));
+
+					player.sendMessage(Text.of(TextColors.YELLOW, "---------------- ",
+							PartiesMain.getUser(party.getLeader()).get().getName(), " party ----------------"));
+				}
 				if (partyPlayer.inParty) {
 					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
 					player.sendMessage(Text.of(TextColors.YELLOW, "---------------- ",
@@ -57,13 +94,50 @@ public class UserCommands {
 					}
 					onlineString = onlineString.replaceFirst(",", "");
 					player.sendMessage(Text.of(TextColors.YELLOW, "Online : ", TextColors.WHITE, onlineString));
-					
-					
-					
+
 					player.sendMessage(Text.of(TextColors.YELLOW, "---------------- ",
 							PartiesMain.getUser(party.getLeader()).get().getName(), " party ----------------"));
 				} else {
 					src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
+				}
+			}
+			else {
+				if (args.getOne("name").isPresent()){
+					
+					User otherParty = (User) args.getOne("name").get();
+					Party party = PartiesMain.allParties.get(otherParty.getUniqueId());
+					src.sendMessage(Text.of(TextColors.YELLOW, "---------------- ",
+							PartiesMain.getUser(party.getLeader()).get().getName(), " party ----------------"));
+					src.sendMessage(Text.of(TextColors.YELLOW, "Leader : ", TextColors.WHITE,
+							PartiesMain.getUser(party.getLeader()).get().getName()));
+
+					// get names from the UUIDs, could put this in a method but cant be bothered atm
+					List<UUID> promoted = party.getPromoted();
+					String promotedString = "";
+					for (UUID uuid : promoted) {
+						promotedString += ", " + PartiesMain.getUser(uuid).get().getName();
+					}
+					promotedString = promotedString.replaceFirst(",", "");
+					List<UUID> members = party.getMembers();
+					String memberString = "";
+					for (UUID uuid : members) {
+						memberString += ", " + PartiesMain.getUser(uuid).get().getName();
+					}
+
+					memberString = memberString.replaceFirst(",", "");
+					src.sendMessage(Text.of(TextColors.YELLOW, "Trusted : ", TextColors.WHITE, promotedString));
+					src.sendMessage(Text.of(TextColors.YELLOW, "Members : ", TextColors.WHITE, memberString));
+					String onlineString = "";
+					for (UUID uuid : members) {
+						if (PartiesMain.getUser(uuid).get().isOnline()) {
+							onlineString += ", " + PartiesMain.getUser(uuid).get().getName();
+						}
+					}
+					onlineString = onlineString.replaceFirst(",", "");
+					src.sendMessage(Text.of(TextColors.YELLOW, "Online : ", TextColors.WHITE, onlineString));
+
+					src.sendMessage(Text.of(TextColors.YELLOW, "---------------- ",
+							PartiesMain.getUser(party.getLeader()).get().getName(), " party ----------------"));
 				}
 			}
 			return CommandResult.success();
@@ -212,24 +286,24 @@ public class UserCommands {
 					return CommandResult.success();
 				}
 				User player2 = (User) args.getOne("Party Leader Username").get();
-				Party party = PartiesMain.allParties.get(PartiesMain.getUserFromName(player2.getName()).get().getUniqueId());
+				Party party = PartiesMain.allParties
+						.get(PartiesMain.getUserFromName(player2.getName()).get().getUniqueId());
 				if (party.invites.containsKey(player.getName())) {
 					party.addMember(player.getUniqueId());
 					partyPlayer.setPartyStatus(true);
 					partyPlayer.setPartyUUID(player2.getUniqueId());
 					PartiesMain.allPartyPlayers.put(player.getUniqueId(), partyPlayer);
 					PartiesMain.allParties.put(party.getLeader(), party);
-					//PartiesMain.saveParty(party);
-				}
-				else {
-					src.sendMessage(Text.of(TextColors.RED,
-							"You have not been invited to this party."));
+					// PartiesMain.saveParty(party);
+				} else {
+					src.sendMessage(Text.of(TextColors.RED, "You have not been invited to this party."));
 				}
 			}
 			return CommandResult.success();
 
 		}
 	}
+
 	public static class leaveParty implements CommandExecutor {
 
 		@Override
@@ -239,7 +313,7 @@ public class UserCommands {
 				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(player.getUniqueId());
 				if (partyPlayer.inParty) {
 					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
-					if (party.getLeader().equals(player.getUniqueId())){
+					if (party.getLeader().equals(player.getUniqueId())) {
 						src.sendMessage(Text.of(TextColors.RED,
 								"You must transfer leadership in order to leave the party. Alternatively disband the party."));
 						return CommandResult.success();
@@ -255,6 +329,7 @@ public class UserCommands {
 
 		}
 	}
+
 	public static class changeLeadership implements CommandExecutor {
 
 		@Override
@@ -291,6 +366,7 @@ public class UserCommands {
 			return CommandResult.success();
 		}
 	}
+
 	public static class promoteUser implements CommandExecutor {
 
 		@Override
@@ -306,21 +382,23 @@ public class UserCommands {
 				}
 				if (partyPlayer.inParty) {
 					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
-					if (promotedPartyPlayer.getPartyUUID().equals(partyPlayer.getPartyUUID())){
+					if (promotedPartyPlayer.getPartyUUID().equals(partyPlayer.getPartyUUID())) {
 						if (party.getLeader().equals(player.getUniqueId())) {
 							src.sendMessage(Text.of(TextColors.AQUA, "Promoted ", promotedPlayer.getName()));
 							party.addPromoted(promotedPlayer.getUniqueId());
 							if (promotedPlayer.isOnline()) {
-								Sponge.getServer().getPlayer(promotedPlayer.getUniqueId()).get().sendMessage(Text.of(TextColors.AQUA, "You were", TextColors.GREEN, " promoted ", TextColors.AQUA, "in the party."));
+								Sponge.getServer().getPlayer(promotedPlayer.getUniqueId()).get()
+								.sendMessage(Text.of(TextColors.AQUA, "You were", TextColors.GREEN,
+										" promoted ", TextColors.AQUA, "in the party."));
 							}
 						} else {
 							src.sendMessage(Text.of(TextColors.RED, "You must be the leader to promote people."));
 						}
-					}else {
+					} else {
 						src.sendMessage(Text.of(TextColors.RED, "They are not a member of your party."));
 					}
-					}else {
-						src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
+				} else {
+					src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
 
 				}
 			}
@@ -328,6 +406,7 @@ public class UserCommands {
 			return CommandResult.success();
 		}
 	}
+
 	public static class demoteUser implements CommandExecutor {
 
 		@Override
@@ -343,21 +422,23 @@ public class UserCommands {
 				}
 				if (partyPlayer.inParty) {
 					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
-					if (demotedPartyPlayer.getPartyUUID().equals(partyPlayer.getPartyUUID())){
+					if (demotedPartyPlayer.getPartyUUID().equals(partyPlayer.getPartyUUID())) {
 						if (party.getLeader().equals(player.getUniqueId())) {
 							src.sendMessage(Text.of(TextColors.AQUA, "Demoted ", demotedPlayer.getName()));
 							if (demotedPlayer.isOnline()) {
-								Sponge.getServer().getPlayer(demotedPlayer.getUniqueId()).get().sendMessage(Text.of(TextColors.AQUA, "You were ", TextColors.RED, " demoted ", TextColors.AQUA, "in the party."));
+								Sponge.getServer().getPlayer(demotedPlayer.getUniqueId()).get()
+								.sendMessage(Text.of(TextColors.AQUA, "You were ", TextColors.RED, " demoted ",
+										TextColors.AQUA, "in the party."));
 							}
 							party.removePromoted(demotedPlayer.getUniqueId());
 						} else {
 							src.sendMessage(Text.of(TextColors.RED, "You must be the leader to demote people."));
 						}
-					}else {
+					} else {
 						src.sendMessage(Text.of(TextColors.RED, "They are not a member of your party."));
 					}
-					}else {
-						src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
+				} else {
+					src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
 
 				}
 			}
@@ -365,6 +446,7 @@ public class UserCommands {
 			return CommandResult.success();
 		}
 	}
+
 	public static class kickUser implements CommandExecutor {
 
 		@Override
@@ -384,27 +466,91 @@ public class UserCommands {
 						src.sendMessage(Text.of(TextColors.RED, "They are not a member of your party."));
 						return CommandResult.success();
 					}
-					if (party.hasRank(player.getUniqueId())){
-						if (party.getLeader().equals(player.getUniqueId()) || party.hasRank(kickedPlayer.getUniqueId())) {
+					if (party.hasRank(player.getUniqueId())) {
+						if (party.getLeader().equals(player.getUniqueId())
+								|| party.hasRank(kickedPlayer.getUniqueId())) {
 							src.sendMessage(Text.of(TextColors.AQUA, "You cannot kick the leader or promoted people."));
 							return CommandResult.success();
 						} else {
 							party.removeMember(kickedPlayer.getUniqueId());
 							src.sendMessage(Text.of(TextColors.AQUA, "Successfully kicked ", kickedPlayer.getName()));
-							//if (kickedPlayer.isOnline()) {
-							//	Sponge.getServer().getPlayer(kickedPlayer.getUniqueId()).get().sendMessage(Text.of(TextColors.AQUA, "You were ", TextColors.RED, " kicked ", TextColors.AQUA, "from the party."));
-							//}
+							// if (kickedPlayer.isOnline()) {
+							// Sponge.getServer().getPlayer(kickedPlayer.getUniqueId()).get().sendMessage(Text.of(TextColors.AQUA,
+							// "You were ", TextColors.RED, " kicked ", TextColors.AQUA, "from the
+							// party."));
+							// }
 							kickPartyPlayer.setPartyStatus(false);
 							kickPartyPlayer.setChatStatus(false);
 							kickPartyPlayer.setPartyUUID(null);
 						}
-					}else {
+					} else {
 						src.sendMessage(Text.of(TextColors.RED, "You do not have the required rank to kick people."));
 
-				}
-					}else {
-						src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
+					}
+				} else {
+					src.sendMessage(Text.of(TextColors.RED, "You are not a member of any party."));
 
+				}
+			}
+			// TODO Auto-generated method stub
+			return CommandResult.success();
+		}
+	}
+
+	public static class listParties implements CommandExecutor {
+
+		@Override
+		public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
+			int max = 10;
+			if (args.getOne("Page Number").isPresent()) {
+				max = (int) args.getOne("Page Number").get() * 10;
+				if (PartiesMain.allParties.size() == 0) {
+					src.sendMessage(Text.of("There are currently no parties."));
+					return CommandResult.success();
+				}
+				if (PartiesMain.allParties.size() > max - 10) {
+					src.sendMessage(Text.of(TextColors.AQUA, "Parties Page ", args.getOne("Page Number").get(), " of ",
+							((PartiesMain.allParties.size() / 10)
+									+ ((PartiesMain.allParties.size() % 10) > 0 ? 1 : 0))));
+				} else {
+					src.sendMessage(Text.of(TextColors.AQUA, "There are no more pages to display."));
+				}
+				for (int i = 10; i > 0; i--) {
+					if (PartiesMain.allParties.size() > max - i) {
+						Text.Builder sendMessage = Text.builder();
+						sendMessage
+						.append(Text.of(TextColors.WHITE, max - i + 1, ". ", TextColors.WHITE,
+								PartiesMain.sortedParties.get(max - i).getLeaderName(), TextColors.YELLOW,
+								" - ", PartiesMain.sortedParties.get(max - i).getMembers().size(), " Members"))
+						.onClick(TextActions.runCommand(
+								"/party show " + PartiesMain.sortedParties.get(max - i).getLeaderName()))
+						.onHover(TextActions.showText(Text.of("Click me to view party info for ",
+								PartiesMain.sortedParties.get(max - i).getLeaderName())))
+						.build();
+
+						src.sendMessage(Text.of(sendMessage));
+					}
+				}
+			} else {
+				max = 10;
+				src.sendMessage(Text.of(TextColors.AQUA, "Parties Page 1 of ",
+						((PartiesMain.allParties.size() / 10) + ((PartiesMain.allParties.size() % 10) > 0 ? 1 : 0))));
+				for (int i = 10; i > 0; i--) {
+					if (PartiesMain.allParties.size() > max - i) {
+						Text.Builder sendMessage = Text.builder();
+
+						sendMessage
+						.append(Text.of(TextColors.WHITE, max - i + 1, ". ", TextColors.WHITE,
+								PartiesMain.sortedParties.get(max - i).getLeaderName(), TextColors.YELLOW,
+								" - ", PartiesMain.sortedParties.get(max - i).getMembers().size(), " Members"))
+						.onClick(TextActions.runCommand(
+								"/party show " + PartiesMain.sortedParties.get(max - i).getLeaderName()))
+						.onHover(TextActions.showText(Text.of("Click me to view party info for ",
+								PartiesMain.sortedParties.get(max - i).getLeaderName())))
+						.build();
+
+						src.sendMessage(Text.of(sendMessage));
+					}
 				}
 			}
 			// TODO Auto-generated method stub

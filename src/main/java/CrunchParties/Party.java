@@ -48,6 +48,10 @@ public class Party {
 	public void setMembers(List<UUID> members) {
 		this.members = members;
 	}
+	
+	public String getLeaderName() {
+		return PartiesMain.getUser(this.getLeader()).get().getName();
+	}
 
 	public List<UUID> getMembers() {
 		return members;
