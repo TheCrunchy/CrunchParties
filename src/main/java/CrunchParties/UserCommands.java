@@ -375,14 +375,10 @@ public class UserCommands {
 				Player player = (Player) src;
 				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(player.getUniqueId());
 				User promotedPlayer = (User) args.getOne("Player").get();
-				PartyPlayer promotedPartyPlayer = PartiesMain.allPartyPlayers.get(promotedPlayer.getUniqueId());
-				if (promotedPartyPlayer.inParty) {
-					src.sendMessage(Text.of(TextColors.RED, "That player is already in a party."));
-					return CommandResult.success();
-				}
+
 				if (partyPlayer.inParty) {
 					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
-					if (promotedPartyPlayer.getPartyUUID().equals(partyPlayer.getPartyUUID())) {
+					if (party.getMembers().contains(promotedPlayer.getUniqueId())) {
 						if (party.getLeader().equals(player.getUniqueId())) {
 							src.sendMessage(Text.of(TextColors.AQUA, "Promoted ", promotedPlayer.getName()));
 							party.addPromoted(promotedPlayer.getUniqueId());
@@ -415,14 +411,10 @@ public class UserCommands {
 				Player player = (Player) src;
 				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(player.getUniqueId());
 				User demotedPlayer = (User) args.getOne("Player").get();
-				PartyPlayer demotedPartyPlayer = PartiesMain.allPartyPlayers.get(demotedPlayer.getUniqueId());
-				if (demotedPartyPlayer.inParty) {
-					src.sendMessage(Text.of(TextColors.RED, "That player is already in a party."));
-					return CommandResult.success();
-				}
+
 				if (partyPlayer.inParty) {
 					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
-					if (demotedPartyPlayer.getPartyUUID().equals(partyPlayer.getPartyUUID())) {
+					if (party.getMembers().contains(demotedPlayer.getUniqueId())) {
 						if (party.getLeader().equals(player.getUniqueId())) {
 							src.sendMessage(Text.of(TextColors.AQUA, "Demoted ", demotedPlayer.getName()));
 							if (demotedPlayer.isOnline()) {
@@ -456,10 +448,6 @@ public class UserCommands {
 				PartyPlayer partyPlayer = PartiesMain.allPartyPlayers.get(player.getUniqueId());
 				User kickedPlayer = (User) args.getOne("Player").get();
 				PartyPlayer kickPartyPlayer = PartiesMain.allPartyPlayers.get(kickedPlayer.getUniqueId());
-				if (!kickPartyPlayer.inParty) {
-					src.sendMessage(Text.of(TextColors.RED, "That player is not in a party."));
-					return CommandResult.success();
-				}
 				if (partyPlayer.inParty) {
 					Party party = PartiesMain.allParties.get(partyPlayer.getPartyUUID());
 					if (!party.getMembers().contains(kickedPlayer.getUniqueId())) {
@@ -467,7 +455,7 @@ public class UserCommands {
 						return CommandResult.success();
 					}
 					if (party.hasRank(player.getUniqueId())) {
-						if (party.getLeader().equals(player.getUniqueId())
+						if (party.getLeader().equals(kickedPlayer.getUniqueId())
 								|| party.hasRank(kickedPlayer.getUniqueId())) {
 							src.sendMessage(Text.of(TextColors.AQUA, "You cannot kick the leader or promoted people."));
 							return CommandResult.success();
@@ -479,9 +467,11 @@ public class UserCommands {
 							// "You were ", TextColors.RED, " kicked ", TextColors.AQUA, "from the
 							// party."));
 							// }
+							if (kickedPlayer.isOnline()) {
 							kickPartyPlayer.setPartyStatus(false);
 							kickPartyPlayer.setChatStatus(false);
 							kickPartyPlayer.setPartyUUID(null);
+							}
 						}
 					} else {
 						src.sendMessage(Text.of(TextColors.RED, "You do not have the required rank to kick people."));
@@ -502,6 +492,7 @@ public class UserCommands {
 		@Override
 		public CommandResult execute(CommandSource src, CommandContext args) throws CommandException {
 			int max = 10;
+			PartiesMain.sortedParties = PartiesMain.sortParties();
 			if (args.getOne("Page Number").isPresent()) {
 				max = (int) args.getOne("Page Number").get() * 10;
 				if (PartiesMain.allParties.size() == 0) {

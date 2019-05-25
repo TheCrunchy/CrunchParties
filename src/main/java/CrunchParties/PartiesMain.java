@@ -79,6 +79,7 @@ public class PartiesMain {
 		Task updatePartiesOrder = Task.builder().execute(new sorterTask())
 				.delayTicks(1)
 				.interval(1, TimeUnit.MINUTES)
+				.async()
 				.name("Update factions order task").submit(this);
 		File folder = new File(root.toString());
 		File[] listOfFiles = folder.listFiles();
@@ -128,7 +129,7 @@ public class PartiesMain {
 	}
 
 	//sort the parties by members
-	public ArrayList <Party> sortParties() {
+	public static ArrayList <Party> sortParties() {
 		ArrayList <Party> sortedParties = new ArrayList<Party>();
 		for (Entry<UUID, Party> party : allParties.entrySet()) {
 			sortedParties.add(party.getValue());

@@ -131,6 +131,7 @@ public class Party {
 			}
 		}
 		PartiesMain.deleteParty(this);
+		PartiesMain.sortParties();
 	}
 	public void sendPartyMessage(Text message, String playerName) {
 		for (UUID keyword : members){
